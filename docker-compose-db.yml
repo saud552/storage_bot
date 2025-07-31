@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # قاعدة البيانات MSSQL
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: telegram_bots_mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=StrongPassword123!
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./database_setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    networks:
+      - telegram_bots_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P StrongPassword123! -Q 'SELECT 1'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # أداة إدارة قاعدة البيانات (اختياري)
+  mssql-admin:
+    image: mcr.microsoft.com/mssql-tools:latest
+    container_name: telegram_bots_mssql_admin
+    depends_on:
+      - mssql
+    environment:
+      - MSSQL_SERVER=mssql
+      - MSSQL_USER=sa
+      - MSSQL_PASSWORD=StrongPassword123!
+    networks:
+      - telegram_bots_network
+    command: >
+      sh -c "
+        echo 'Waiting for SQL Server to start...' &&
+        sleep 30 &&
+        /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P StrongPassword123! -i /docker-entrypoint-initdb.d/setup.sql &&
+        echo 'Database setup completed!' &&
+        tail -f /dev/null
+      "
+    volumes:
+      - ./database_setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    restart: unless-stopped
+
+  # Redis للتخزين المؤقت (اختياري)
+  redis:
+    image: redis:7-alpine
+    container_name: telegram_bots_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - telegram_bots_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass StrongRedisPassword123!
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mssql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  telegram_bots_network:
+    driver: bridge
