@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # قاعدة البيانات
+  database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: telegram_bots_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrongPassword123!
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - db_data:/var/opt/mssql
+    networks:
+      - bot_network
+    restart: unless-stopped
+
+  # بوت التخزين
+  storage_bot:
+    build: .
+    container_name: telegram_storage_bot
+    environment:
+      - MANAGER_BOT_TOKEN=${MANAGER_BOT_TOKEN}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - MANAGER_WEBHOOK_URL=${MANAGER_WEBHOOK_URL}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_SERVER=database
+      - DB_NAME=TelegramBots
+      - DB_USER=sa
+      - DB_PASS=YourStrongPassword123!
+    ports:
+      - "8443:8443"
+    depends_on:
+      - database
+    networks:
+      - bot_network
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+
+  # Nginx كـ reverse proxy (اختياري)
+  nginx:
+    image: nginx:alpine
+    container_name: bot_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - storage_bot
+    networks:
+      - bot_network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  bot_network:
+    driver: bridge
