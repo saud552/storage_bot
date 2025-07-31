@@ -91,7 +91,7 @@ cmake ..
 make -j$(nproc)
 
 # تشغيل النظام
-./storage_bot_improved
+./storage_bot_optimized
 ```
 
 ## 📊 هيكل قاعدة البيانات

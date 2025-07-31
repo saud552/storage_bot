@@ -66,7 +66,7 @@ COPY . .
 # بناء المشروع
 RUN mkdir build && cd build \
     && cmake .. \
-    && make -j$(nproc)
+    && make -j$(nproc) storage_bot_optimized
 
 # إنشاء مستخدم غير root
 RUN useradd -m -s /bin/bash botuser \
@@ -103,7 +103,7 @@ if [ -z "$ENCRYPTION_KEY" ]; then\n\
 fi\n\
 \n\
 cd /app/build\n\
-./storage_bot_improved\n\
+./storage_bot_optimized\n\
 ' > /app/run.sh && chmod +x /app/run.sh
 
 # نقطة الدخول

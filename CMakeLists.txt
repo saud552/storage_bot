@@ -27,10 +27,10 @@ pkg_check_modules(NANODBC REQUIRED nanodbc)
 find_package(Boost COMPONENTS system thread REQUIRED)
 
 # إنشاء الملف التنفيذي
-add_executable(storage_bot_improved storage_bot_improved.cpp)
+add_executable(storage_bot_optimized storage_bot_optimized.cpp)
 
 # ربط المكتبات
-target_link_libraries(storage_bot_improved
+target_link_libraries(storage_bot_optimized
     ${TGBOT_LIBRARIES}
     ${CRYPTOPP_LIBRARIES}
     ${NANODBC_LIBRARIES}
@@ -42,14 +42,14 @@ target_link_libraries(storage_bot_improved
 )
 
 # إضافة مسارات الرأس
-target_include_directories(storage_bot_improved PRIVATE
+target_include_directories(storage_bot_optimized PRIVATE
     ${TGBOT_INCLUDE_DIRS}
     ${CRYPTOPP_INCLUDE_DIRS}
     ${NANODBC_INCLUDE_DIRS}
 )
 
 # إضافة flags المترجم
-target_compile_options(storage_bot_improved PRIVATE
+target_compile_options(storage_bot_optimized PRIVATE
     ${TGBOT_CFLAGS_OTHER}
     ${CRYPTOPP_CFLAGS_OTHER}
     ${NANODBC_CFLAGS_OTHER}
@@ -57,20 +57,20 @@ target_compile_options(storage_bot_improved PRIVATE
 
 # إعدادات خاصة بـ Linux
 if(UNIX AND NOT APPLE)
-    target_link_libraries(storage_bot_improved rt)
+    target_link_libraries(storage_bot_optimized rt)
 endif()
 
 # إعدادات خاصة بـ Windows
 if(WIN32)
-    target_link_libraries(storage_bot_improved ws2_32)
+    target_link_libraries(storage_bot_optimized ws2_32)
 endif()
 
 # إضافة اختبارات الوحدة (اختياري)
 enable_testing()
-add_test(NAME BasicTest COMMAND storage_bot_improved --test)
+add_test(NAME BasicTest COMMAND storage_bot_optimized --test)
 
 # إعدادات التثبيت
-install(TARGETS storage_bot_improved
+install(TARGETS storage_bot_optimized
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
